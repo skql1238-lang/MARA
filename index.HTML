@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대학이쉽던</title>
+<style>
+    /* 폰트 및 기본 초기화 */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body, html {
+        width: 100%;
+        min-height: 100%;
+        background-color: transparent; 
+        color: #333;
+        transition: color 1s ease;
+    }
+
+    /* =========================================
+       ✨ 배경 및 축제 모드 전환 설정 ✨
+       ========================================= */
+    .bg-wrap {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        overflow: hidden;
+        background-color: #1a1a1a; 
+    }
+    
+    .bg-image {
+        position: absolute;
+        top: -5%;
+        left: -5%;
+        width: 110%;
+        height: 110%;
+        background-image: url('https://drmara.uk/A/%EB%A7%B51.png');
+        background-size: cover;
+        background-position: center;
+        filter: blur(6px) brightness(0.85);
+        opacity: 0.9; 
+        transition: background-image 1.5s ease-in-out, filter 1.5s ease-in-out; 
+    }
+
+    body.festival-mode .bg-image {
+        background-image: url('https://drmara.uk/A/%EB%A7%B52.png');
+        filter: blur(4px) brightness(0.9) contrast(1.1);
+    }
+
+    .bg-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+        background-size: 30px 30px;
+        z-index: 1;
+    }
+
+    .festival-lighting {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle at 50% 50%, rgba(255, 140, 0, 0.25), rgba(20, 10, 0, 0.6));
+        z-index: 2;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1.5s ease-in-out;
+    }
+    body.festival-mode .festival-lighting { opacity: 1; }
+
+    .fireworks-container {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 1.5s ease-in-out;
+    }
+    body.festival-mode .fireworks-container { opacity: 1; visibility: visible; }
+
+    .fw {
+        position: absolute;
+        border-radius: 50%;
+        border: 4px dotted #ffb703;
+        box-shadow: 0 0 20px #fb8500, inset 0 0 20px #fb8500;
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    .fw::after {
+        content: ''; position: absolute; top: 50%; left: 50%;
+        width: 8px; height: 8px; background: #fff; border-radius: 50%;
+        transform: translate(-50%, -50%); box-shadow: 0 0 20px 8px #ffb703;
+    }
+    
+    @keyframes burst {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+        60% { opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
+
+    .fw1 { top: 20%; left: 25%; width: 250px; height: 250px; animation: burst 2.5s ease-out infinite; }
+    .fw2 { top: 30%; left: 75%; width: 350px; height: 350px; border-color: #ff006e; box-shadow: 0 0 25px #ff006e, inset 0 0 25px #ff006e; animation: burst 3.2s ease-out infinite 0.8s; }
+    .fw2::after { box-shadow: 0 0 20px 8px #ff006e; }
+    .fw3 { top: 60%; left: 15%; width: 200px; height: 200px; border-color: #8338ec; box-shadow: 0 0 20px #8338ec, inset 0 0 20px #8338ec; animation: burst 2.2s ease-out infinite 1.5s; }
+    .fw3::after { box-shadow: 0 0 20px 8px #8338ec; }
+    .fw4 { top: 75%; left: 80%; width: 300px; height: 300px; border-color: #3a86ff; box-shadow: 0 0 25px #3a86ff, inset 0 0 25px #3a86ff; animation: burst 2.8s ease-out infinite 2.2s; }
+    .fw4::after { box-shadow: 0 0 20px 8px #3a86ff; }
+    .fw5 { top: 15%; left: 60%; width: 150px; height: 150px; border-color: #06d6a0; box-shadow: 0 0 15px #06d6a0, inset 0 0 15px #06d6a0; animation: burst 2s ease-out infinite 0.3s; }
+    .fw5::after { box-shadow: 0 0 15px 5px #06d6a0; }
+
+
+    /* 상단 네비게이션 */
+    .header {
+        position: fixed; top: 0; left: 0; width: 100%; height: 75px;
+        background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px);
+        z-index: 100; display: flex; justify-content: center; align-items: center;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+        transition: background 1s ease, border-color 1s ease;
+    }
+    
+    body.festival-mode .header {
+        background: rgba(30, 20, 10, 0.85);
+        border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+    }
+
+    .nav-menu { display: flex; gap: 40px; align-items: center; }
+
+    .nav-btn {
+        background: none; border: none; color: #555; font-size: 1.1rem;
+        font-weight: 700; letter-spacing: 1px; cursor: pointer;
+        padding: 10px 5px; position: relative; transition: color 0.3s ease;
+    }
+    
+    body.festival-mode .nav-btn { color: #ccc; }
+    .nav-btn:hover, .nav-btn.active { color: #4361ee; }
+    body.festival-mode .nav-btn:hover, body.festival-mode .nav-btn.active { color: #ff8c00; }
+
+    .nav-btn::after {
+        content: ''; position: absolute; width: 0; height: 3px; bottom: 0; left: 50%;
+        background-color: #4361ee; border-radius: 2px; transition: all 0.3s ease; transform: translateX(-50%);
+    }
+    body.festival-mode .nav-btn::after { background-color: #ff8c00; }
+    .nav-btn.active::after { width: 100%; }
+
+    .home-nav-btn {
+        display: none; align-items: center; justify-content: center;
+    }
+    body.festival-mode .home-nav-btn {
+        display: flex;
+    }
+
+    /* 메인 컨텐츠 영역 */
+    .main-content { padding: 110px 20px 80px; max-width: 1300px; margin: 0 auto; }
+
+    .tab-section { display: none; animation: fadeIn 0.5s ease; }
+    .tab-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 대문 (Home) */
+    .main-poster-wrapper {
+        display: flex; justify-content: center; align-items: center;
+        width: 100%; padding-top: 10px;
+    }
+    .poster-frame {
+        position: relative; width: 100%; max-width: 1000px;
+        background: rgba(15, 10, 8, 0.9); padding: 15px; border-radius: 20px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255, 140, 0, 0.15);
+        border: 1px solid rgba(255, 140, 0, 0.25);
+    }
+    .poster-inner {
+        position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #000;
+    }
+    .poster-inner img {
+        width: 100%; height: auto; max-height: 75vh; object-fit: contain; display: block;
+        transition: opacity 1.5s ease-in-out, transform 0.6s ease;
+    }
+    .poster-glass {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none; z-index: 10;
+    }
+    .poster-decor {
+        position: absolute; top: 25px; left: 25px; right: 25px; bottom: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; pointer-events: none; z-index: 11;
+    }
+    .poster-decor::before, .poster-decor::after {
+        content: ''; position: absolute; width: 40px; height: 40px; border: 2px solid #ff8c00;
+    }
+    .poster-decor::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+    .poster-decor::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+    .ui-dot { position: absolute; width: 5px; height: 5px; background: #ff8c00; border-radius: 50%; z-index: 12; box-shadow: 0 0 8px #ff8c00; }
+    .top-left { top: 12px; left: 12px; }
+    .top-right { top: 12px; right: 12px; }
+    .bottom-left { bottom: 12px; left: 12px; }
+    .bottom-right { bottom: 12px; right: 12px; }
+
+    /* 세계관 */
+    .world-top-img {
+        width: 100%; height: auto; border-radius: 12px; margin-bottom: 30px; object-fit: cover; display: block;
+    }
+    .schedule-main-title {
+        text-align: center; margin: 20px 0 50px; padding-bottom: 20px; border-bottom: 2px solid rgba(255, 255, 255, 0.2); transition: border-color 1s ease;
+    }
+    body.festival-mode .schedule-main-title { border-bottom: 2px solid rgba(255, 140, 0, 0.4); }
+    .schedule-main-title h2 {
+        font-size: 2.6rem; font-weight: 900; color: #ffffff; letter-spacing: -1px; text-shadow: 0 4px 15px rgba(0,0,0,0.3); margin: 0; line-height: 1.2; transition: color 1s ease, text-shadow 1s ease;
+    }
+    body.festival-mode .schedule-main-title h2 { color: #ff8c00; text-shadow: 0 0 20px rgba(255, 140, 0, 0.4); }
+    .schedule-main-title span {
+        display: inline-block; font-size: 1.1rem; font-weight: 600; color: rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.15); padding: 6px 16px; border-radius: 30px; letter-spacing: 2px; margin-top: 15px; backdrop-filter: blur(4px); transition: color 1s ease, background 1s ease;
+    }
+    body.festival-mode .schedule-main-title span { color: #ffdab3; background: rgba(255, 140, 0, 0.15); }
+
+    .content-card {
+        background: rgba(255, 255, 255, 0.95); border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); margin-bottom: 40px; transition: box-shadow 1s ease, background 1s ease;
+    }
+    body.festival-mode .content-card { background: rgba(25, 20, 18, 0.95); box-shadow: 0 10px 40px rgba(255, 140, 0, 0.15); color: #eee; }
+
+    .section-title {
+        font-size: 1.8rem; font-weight: 800; color: #2b303a; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; display: inline-block; transition: color 1s ease, border-color 1s ease;
+    }
+    body.festival-mode .section-title { color: #fff; border-bottom: 2px solid rgba(255, 140, 0, 0.3); }
+
+    .sub-title {
+        font-size: 1.3rem; font-weight: 700; color: #4361ee; margin: 25px 0 15px 0; display: flex; align-items: center; gap: 8px; transition: color 1s ease;
+    }
+    body.festival-mode .sub-title { color: #ff8c00; }
+    .sub-title::before {
+        content: ''; display: inline-block; width: 4px; height: 18px; background-color: #4361ee; border-radius: 2px; transition: background-color 1s ease;
+    }
+    body.festival-mode .sub-title::before { background-color: #ff8c00; }
+
+    .info-list { list-style: none; line-height: 1.8; font-size: 1.05rem; }
+    .info-list li { margin-bottom: 10px; display: flex; }
+    .info-label { font-weight: 700; color: #555; min-width: 100px; flex-shrink: 0; transition: color 1s ease; }
+    body.festival-mode .info-label { color: #aaa; }
+
+    .rules-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin: 20px 0 35px 0; }
+    .rule-item {
+        display: flex; align-items: flex-start; gap: 15px; padding: 18px; background: rgba(248, 250, 252, 0.6); border-radius: 12px; border: 1px solid #e2e8f0; transition: background 1s ease, border-color 1s ease, transform 0.3s ease;
+    }
+    .rule-item:hover { transform: translateY(-2px); }
+    body.festival-mode .rule-item { background: rgba(40, 32, 28, 0.6); border-color: #4a3b32; }
+    .rule-icon { font-size: 1.4rem; padding-top: 1px; }
+    .rule-text strong { display: block; font-size: 1.05rem; margin-bottom: 6px; color: #1e293b; transition: color 1s ease; }
+    body.festival-mode .rule-text strong { color: #fff; }
+    .rule-text p { font-size: 0.9rem; color: #64748b; line-height: 1.5; transition: color 1s ease; }
+    body.festival-mode .rule-text p { color: #bbb; }
+
+    .location-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-top: 20px; }
+    .loc-card {
+        background: #fff; border: 1px solid #eaeaea; border-radius: 12px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease, background 1s ease, border-color 1s ease;
+    }
+    body.festival-mode .loc-card { background: #221d1a; border-color: #3a2a20; }
+    .loc-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(67, 97, 238, 0.1); }
+    body.festival-mode .loc-card:hover { box-shadow: 0 15px 30px rgba(255, 140, 0, 0.2); }
+    .loc-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; border-bottom: 1px solid #eaeaea; transition: border-color 1s ease; }
+    body.festival-mode .loc-img { border-color: #3a2a20; }
+    .loc-info { padding: 20px; }
+    .loc-name { font-size: 1.2rem; font-weight: 800; color: #1e293b; margin-bottom: 10px; transition: color 1s ease; }
+    body.festival-mode .loc-name { color: #fff; }
+    .loc-desc { font-size: 0.95rem; color: #64748b; line-height: 1.6; transition: color 1s ease; }
+    body.festival-mode .loc-desc { color: #bbb; }
+
+    /* 연간일정 */
+    .calendar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+    .month-card {
+        background: #fff; border-radius: 16px; padding: 20px; border: 2px solid #f1f5f9; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: border-color 0.3s, background 1s ease;
+    }
+    body.festival-mode .month-card { background: #221d1a; border-color: #3a2a20; }
+    .month-card:hover { border-color: #4361ee; }
+    body.festival-mode .month-card:hover { border-color: #ff8c00; }
+    .month-header {
+        font-size: 1.4rem; font-weight: 900; color: #2b303a; margin-bottom: 15px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: color 1s ease, border-color 1s ease;
+    }
+    body.festival-mode .month-header { color: #fff; border-color: #554a40; }
+    .sticker { font-size: 1.6rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); transform: rotate(15deg); display: inline-block; }
+    .event-list { list-style: none; }
+    .event-list li { font-size: 0.95rem; color: #475569; margin-bottom: 8px; padding-left: 15px; position: relative; line-height: 1.4; transition: color 1s ease; }
+    body.festival-mode .event-list li { color: #ccc; }
+    .event-list li::before { content: '•'; position: absolute; left: 0; color: #4361ee; font-weight: bold; transition: color 1s ease; }
+    body.festival-mode .event-list li::before { color: #ff8c00; }
+
+    /* 캐릭터 */
+    .character-container { display: flex; flex-direction: column; gap: 40px; align-items: center; }
+    .char-card {
+        position: relative; width: 80%; max-width: 850px; height: 220px; background: #ffffff; border-radius: 16px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06), 0 5px 15px rgba(67, 97, 238, 0.02); display: flex; cursor: pointer; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    body.festival-mode .char-card { background: #221d1a; box-shadow: 0 15px 40px rgba(0,0,0,0.4), 0 5px 15px rgba(255, 140, 0, 0.1); border: 1px solid rgba(255, 140, 0, 0.1); }
+    .char-card::before, .char-card::after {
+        content: ''; position: absolute; width: 24px; height: 24px; background-color: transparent; border-radius: 50%; left: 70%; z-index: 5; box-shadow: inset 0 2px 5px rgba(0,0,0,0.04);
+    }
+    .char-card::before { top: -12px; }
+    .char-card::after { bottom: -12px; }
+    .card-main { position: relative; width: 70%; height: 100%; border-radius: 16px 0 0 16px; overflow: hidden; }
+    .card-main img, .modal-header-img img {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 1.5s ease-in-out, transform 0.6s ease;
+    }
+    .modal-header-img img { object-position: center 20%; }
+    .img-festival { opacity: 0; pointer-events: none; }
+    body.festival-mode .img-normal { opacity: 0; }
+    body.festival-mode .img-festival { opacity: 1; }
+    .card-divider {
+        position: relative; width: 1px; height: 100%; background-image: linear-gradient(#e0e0e0 50%, rgba(255,255,255,0) 0%); background-position: right; background-size: 1px 10px; background-repeat: repeat-y; transition: background-image 1s ease;
+    }
+    body.festival-mode .card-divider { background-image: linear-gradient(#554a40 50%, rgba(0,0,0,0) 0%); }
+    .side-panel {
+        width: 30%; height: 100%; background: #ffffff; border-radius: 0 16px 16px 0; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 20px; transition: background 1s ease;
+    }
+    body.festival-mode .side-panel { background: #221d1a; }
+    .info-top { display: flex; flex-direction: column; gap: 4px; }
+    .info-label { font-size: 0.8rem; font-weight: 700; color: #a0aabf; letter-spacing: 1.5px; transition: color 1s ease; }
+    body.festival-mode .info-label { color: #ff8c00; }
+    .info-value { font-size: 1.4rem; font-weight: 800; color: #2b303a; letter-spacing: -0.5px; transition: color 1s ease; }
+    body.festival-mode .info-value { color: #fff; }
+    .info-sub { font-size: 0.9rem; color: #64748b; font-weight: 600; margin-top: 5px; transition: color 1s ease; }
+    body.festival-mode .info-sub { color: #aaa; }
+    .design-graphic { width: 100%; display: flex; align-items: center; gap: 12px; }
+    .design-graphic .circle {
+        width: 38px; height: 38px; border: 2px solid #e2e8f0; border-radius: 50%; display: flex; justify-content: center; align-items: center; position: relative; transition: all 0.4s ease;
+    }
+    body.festival-mode .design-graphic .circle { border-color: #554a40; }
+    .design-graphic .circle::after { content: ''; width: 12px; height: 12px; background-color: #e2e8f0; border-radius: 50%; transition: all 0.4s ease; }
+    body.festival-mode .design-graphic .circle::after { background-color: #554a40; }
+    .design-graphic .lines { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .design-graphic .lines span { height: 3px; background-color: #f1f5f9; border-radius: 2px; transition: all 0.4s ease; }
+    body.festival-mode .design-graphic .lines span { background-color: #3a2a20; }
+    .design-graphic .lines span:nth-child(1) { width: 100%; }
+    .design-graphic .lines span:nth-child(2) { width: 65%; }
+    .design-graphic .lines span:nth-child(3) { width: 35%; }
+    .char-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 30px 50px rgba(67, 97, 238, 0.15), 0 10px 20px rgba(0, 0, 0, 0.05); }
+    body.festival-mode .char-card:hover { box-shadow: 0 30px 50px rgba(255, 140, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.5); border-color: #ff8c00; }
+    .char-card:hover .card-main img { transform: scale(1.05); }
+    .char-card:hover .design-graphic .circle { border-color: #4361ee; }
+    body.festival-mode .char-card:hover .design-graphic .circle { border-color: #ff8c00; box-shadow: 0 0 15px rgba(255, 140, 0, 0.4); }
+    .char-card:hover .design-graphic .circle::after { background-color: #4361ee; }
+    body.festival-mode .char-card:hover .design-graphic .circle::after { background-color: #ff8c00; }
+    .char-card:hover .design-graphic .lines span { background-color: #4361ee; opacity: 0.8; }
+    body.festival-mode .char-card:hover .design-graphic .lines span { background-color: #ff8c00; }
+
+    .card-a { align-self: flex-start; margin-left: 2%; }
+    .card-b { align-self: center; margin-left: 10%; }
+    .card-c { align-self: flex-start; margin-left: 6%; }
+    .card-d { align-self: flex-end; margin-right: 2%; }
+    .char-data-hidden { display: none; }
+
+    /* 모달 */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active { display: flex; opacity: 1; }
+    .modal-content {
+        background: #fff; width: 100%; max-width: 800px; max-height: 90vh; border-radius: 20px; overflow-y: auto; position: relative; transform: translateY(20px); transition: transform 0.3s ease, background 1s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    body.festival-mode .modal-content { background: #221d1a; color: #eee; box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(255, 140, 0, 0.15); }
+    .modal-overlay.active .modal-content { transform: translateY(0); }
+    .modal-close {
+        position: absolute; top: 20px; right: 25px; background: rgba(0,0,0,0.05); border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: background 0.3s, color 1s ease; z-index: 10;
+    }
+    body.festival-mode .modal-close { background: rgba(255,255,255,0.1); color: #fff; }
+    .modal-close:hover { background: rgba(0,0,0,0.1); }
+    body.festival-mode .modal-close:hover { background: rgba(255, 140, 0, 0.3); }
+    .modal-header-img { width: 100%; height: 250px; background: #eee; position: relative; }
+    body.festival-mode .modal-header-img { background: #111; }
+    .modal-body { padding: 40px; }
+    .modal-name { font-size: 2.2rem; font-weight: 900; color: #1e293b; margin-bottom: 5px; transition: color 1s ease; }
+    body.festival-mode .modal-name { color: #fff; }
+    .modal-tags { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+    .m-tag { background: #e0e7ff; color: #4361ee; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; transition: all 1s ease; }
+    body.festival-mode .m-tag { background: rgba(255, 140, 0, 0.15); color: #ff8c00; }
+    .modal-section { margin-bottom: 30px; }
+    .modal-section h4 {
+        font-size: 1.2rem; color: #0f172a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; display: flex; align-items: center; gap: 8px; transition: color 1s ease, border-color 1s ease;
+    }
+    body.festival-mode .modal-section h4 { color: #ff8c00; border-bottom: 2px solid rgba(255, 140, 0, 0.2); }
+    .modal-text-grid { display: grid; grid-template-columns: 1fr; gap: 12px; font-size: 1rem; line-height: 1.7; color: #475569; transition: color 1s ease; }
+    body.festival-mode .modal-text-grid { color: #ccc; }
+    .modal-text-grid span.highlight { font-weight: 700; color: #1e293b; margin-right: 5px; transition: color 1s ease; }
+    body.festival-mode .modal-text-grid span.highlight { color: #fff; }
+    .quote-box {
+        background: #f8fafc; border-left: 4px solid #4361ee; padding: 15px 20px; border-radius: 0 8px 8px 0; font-style: italic; color: #334155; margin-top: 15px; transition: all 1s ease;
+    }
+    body.festival-mode .quote-box { background: rgba(255, 140, 0, 0.05); border-left: 4px solid #ff8c00; color: #e2e8f0; }
+
+    /* 카카오 알림팝업 */
+    .festival-noti {
+        position: fixed; bottom: -150px; right: 40px; background: #ffffff; border-radius: 16px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0,0,0,0.05); cursor: pointer; z-index: 999; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+    }
+    .festival-noti.show { animation: slideUpNoti 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, floatNoti 3s ease-in-out infinite 0.8s; }
+    @keyframes slideUpNoti { to { bottom: 40px; } }
+    @keyframes floatNoti { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .festival-noti:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2); animation-play-state: paused; }
+    .noti-profile { position: relative; width: 56px; height: 56px; border-radius: 20px; overflow: hidden; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
+    .noti-profile img { width: 100%; height: 100%; object-fit: cover; }
+    .noti-badge { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; background-color: #ff3b30; color: white; font-size: 0.75rem; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 2px solid #fff; border-radius: 50%; z-index: 2; }
+    .noti-badge::after { content: '1'; }
+    .noti-content { display: flex; flex-direction: column; gap: 4px; }
+    .noti-header { display: flex; align-items: center; gap: 8px; }
+    .noti-sender { font-size: 1.1rem; font-weight: 800; color: #191919; }
+    .noti-time { font-size: 0.8rem; color: #a0aabf; font-weight: 600; }
+    .noti-message { font-size: 1.05rem; color: #475569; font-weight: 600; }
+    .noti-action { margin-left: 10px; background: #fee500; color: #191919; padding: 10px 20px; border-radius: 8px; font-size: 0.95rem; font-weight: 800; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(254, 229, 0, 0.3); }
+    .festival-noti:hover .noti-action { background: #ffd000; box-shadow: 0 4px 15px rgba(254, 229, 0, 0.5); }
+
+
+    /* =========================================
+       📱✨ [NEW] 카카오톡 폰 테마 로딩창 ✨📱
+       ========================================= */
+    #phone-loading-screen {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.9); z-index: 9999;
+        display: flex; justify-content: center; align-items: center;
+        transition: opacity 0.6s ease, visibility 0.6s;
+    }
+    #phone-loading-screen.hidden {
+        opacity: 0; visibility: hidden; pointer-events: none;
+    }
+
+    .phone-frame {
+        width: 100%; max-width: 400px; height: 85vh; max-height: 850px;
+        background: #b2c7d9; border-radius: 35px; overflow: hidden;
+        display: flex; flex-direction: column; position: relative;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        border: 10px solid #1c1c1e;
+    }
+
+    /* 상단 상태표시줄 */
+    .status-bar {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 25px 8px; font-size: 0.85rem; font-weight: 600; color: #111;
+        background: #b2c7d9;
+    }
+    
+    /* 카톡 상단바 */
+    .kkt-header {
+        background: #b2c7d9; padding: 10px 15px 15px; display: flex; align-items: center;
+        font-weight: 800; font-size: 1.2rem; color: #111; border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .kkt-header svg { width: 24px; height: 24px; margin-right: 15px; cursor: pointer; }
+
+    /* 대화창 영역 */
+    .kkt-body {
+        flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+        background: #b2c7d9; padding-bottom: 40px; /* 여유 공간 */
+    }
+    
+    .kkt-date {
+        align-self: center; background: rgba(0,0,0,0.15); color: #fff; 
+        padding: 5px 15px; border-radius: 20px; font-size: 0.75rem; margin-bottom: 10px;
+    }
+
+    /* 말풍선 공통 스타일 */
+    .kkt-msg-row {
+        display: flex; gap: 10px; opacity: 0; animation: msgFadeIn 0.4s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .kkt-profile {
+        width: 42px; height: 42px; border-radius: 16px; overflow: hidden; flex-shrink: 0;
+    }
+    .kkt-profile img { width: 100%; height: 100%; object-fit: cover; }
+    .kkt-profile-spacer { width: 42px; flex-shrink: 0; }
+    
+    .kkt-msg-content { display: flex; flex-direction: column; gap: 5px; }
+    .kkt-name { font-size: 0.85rem; color: #333; font-weight: 600; margin-left: 2px;}
+    
+    .kkt-bubble {
+        background: #fff; padding: 10px 14px; border-radius: 4px 14px 14px 14px; 
+        font-size: 0.95rem; max-width: 230px; line-height: 1.4; color: #111; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.08); display: inline-block; word-break: keep-all;
+    }
+    .kkt-bubble.consecutive { border-radius: 14px; } 
+
+    /* ✨ 내 답장 말풍선 (오른쪽 정렬, 클릭 버튼 역할) ✨ */
+    .kkt-msg-row.my-msg {
+        justify-content: flex-end; 
+        margin-top: 15px; 
+        cursor: pointer;
+    }
+    .kkt-msg-row.my-msg .kkt-bubble {
+        background: #fee500; 
+        color: #191919; 
+        font-weight: 800; 
+        border-radius: 14px 4px 14px 14px;
+        box-shadow: 0 4px 15px rgba(254, 229, 0, 0.4);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kkt-msg-row.my-msg:hover .kkt-bubble {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(254, 229, 0, 0.6);
+    }
+    .kkt-msg-row.my-msg:active .kkt-bubble {
+        transform: scale(0.95);
+    }
+
+    @keyframes msgFadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* BGM 토글 버튼 */
+    .music-toggle-btn {
+        position: fixed; bottom: 30px; left: 30px; z-index: 1000;
+        background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(0,0,0,0.1);
+        padding: 10px 18px; border-radius: 30px; cursor: pointer;
+        font-weight: 800; font-size: 0.9rem; color: #333;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1); backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+    }
+    body.festival-mode .music-toggle-btn { background: rgba(30, 20, 10, 0.85); color: #ff8c00; border-color: rgba(255,140,0,0.2); }
+    .music-toggle-btn:hover { transform: translateY(-3px); }
+
+    /* =========================================
+       ✨ 📱 모바일 전용 UI 최적화 ✨
+       ========================================= */
+    @media (max-width: 768px) {
+        /* 모바일에서 로딩 폰 UI는 화면에 꽉 차게 */
+        .phone-frame { width: 100%; height: 100vh; max-height: none; border-radius: 0; border: none; }
+        
+        .header { height: 60px; }
+        .nav-menu { gap: 6px; } 
+        .nav-btn { font-size: 0.85rem; padding: 6px 2px; }
+        .main-content { padding: 80px 10px 40px; }
+        
+        .poster-frame { padding: 8px; border-radius: 16px; }
+        .poster-inner { border-radius: 10px; }
+        .poster-decor { top: 15px; left: 15px; right: 15px; bottom: 15px; }
+        .poster-decor::before, .poster-decor::after { width: 20px; height: 20px; }
+        .top-left { top: 8px; left: 8px; }
+        .top-right { top: 8px; right: 8px; }
+        .bottom-left { bottom: 8px; left: 8px; }
+        .bottom-right { bottom: 8px; right: 8px; }
+
+        .schedule-main-title h2 { font-size: 1.8rem; }
+        .schedule-main-title span { font-size: 1rem; }
+
+        .content-card { padding: 20px 15px; margin-bottom: 25px; }
+        .section-title { font-size: 1.4rem; margin-bottom: 15px; padding-bottom: 10px; }
+        .sub-title { font-size: 1.1rem; margin: 20px 0 10px 0; }
+        .info-list { font-size: 0.9rem; }
+        .info-label { min-width: 80px; }
+
+        .rules-container { grid-template-columns: 1fr; gap: 10px; }
+        .rule-item { padding: 14px; gap: 12px; }
+        .rule-text strong { font-size: 1rem; margin-bottom: 4px; }
+        .rule-text p { font-size: 0.85rem; }
+        
+        .location-grid { grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
+        .loc-info { padding: 15px; }
+        .loc-name { font-size: 1.05rem; }
+        .loc-desc { font-size: 0.85rem; }
+        .loc-img { border-radius: 12px 12px 0 0; } 
+
+        .calendar-grid { grid-template-columns: 1fr; gap: 15px; }
+        .month-card { padding: 15px; }
+        .month-header { font-size: 1.2rem; margin-bottom: 10px; }
+        .sticker { font-size: 1.3rem; }
+        .event-list li { font-size: 0.85rem; margin-bottom: 6px; }
+
+        .character-container { gap: 25px; }
+        .char-card { width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; height: 160px; border-radius: 12px; }
+        .char-card::before, .char-card::after { width: 16px; height: 16px; }
+        .char-card::before { top: -8px; }
+        .char-card::after { bottom: -8px; }
+        
+        .card-main { width: 60%; border-radius: 12px 0 0 12px; }
+        .side-panel { width: 40%; border-radius: 0 12px 12px 0; padding: 15px 12px; }
+        
+        .info-label { font-size: 0.8rem; }
+        .info-value { font-size: 1.1rem; }
+        .info-sub { font-size: 0.75rem; margin-top: 0; }
+        
+        .design-graphic .circle { width: 28px; height: 28px; }
+        .design-graphic .circle::after { width: 8px; height: 8px; }
+
+        .modal-body { padding: 20px 15px; }
+        .modal-header-img { height: 140px; }
+        .modal-name { font-size: 1.5rem; margin-bottom: 10px; }
+        .modal-name span { font-size: 0.9rem !important; }
+        .modal-tags { margin-bottom: 20px; gap: 6px; }
+        .m-tag { font-size: 0.75rem; padding: 4px 8px; }
+        .modal-section h4 { font-size: 1.05rem; }
+        .modal-text-grid { font-size: 0.85rem; gap: 8px; }
+        .quote-box { padding: 10px 15px; font-size: 0.85rem; margin-top: 10px; }
+
+        .festival-noti.show {
+            right: 15px; left: 15px; bottom: -150px; padding: 15px 18px; gap: 12px; border-radius: 16px;
+            animation: slideUpNotiMobile 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, floatNoti 3s ease-in-out infinite 0.8s;
+        }
+        @keyframes slideUpNotiMobile { to { bottom: 20px; } }
+        
+        .noti-profile { width: 48px; height: 48px; border-radius: 16px; }
+        .noti-sender { font-size: 1rem; }
+        .noti-time { font-size: 0.75rem; }
+        .noti-message { font-size: 0.95rem; }
+        .noti-action { padding: 8px 14px; font-size: 0.85rem; margin-left: 0; }
+        
+        .music-toggle-btn { bottom: 20px; left: 15px; padding: 8px 14px; font-size: 0.8rem; }
+    }
+</style>
+</head>
+<body onload="initPage()">
+
+<!-- ✨ 모바일 카톡 컨셉 로딩창 ✨ -->
+<div id="phone-loading-screen">
+    <div class="phone-frame">
+        <div class="status-bar">
+            <span>10:00</span>
+            <span>📶 100% 🔋</span>
+        </div>
+        
+        <div class="kkt-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            김건우
+        </div>
+
+        <div class="kkt-body">
+            <div class="kkt-date">2027년 3월 MT 당일</div>
+
+            <!-- 첫 번째 메세지 -->
+            <div class="kkt-msg-row" style="animation-delay: 0.5s;">
+                <div class="kkt-profile"><img src="https://drmara.uk/A/3.png" alt="김건우"></div>
+                <div class="kkt-msg-content">
+                    <span class="kkt-name">김건우</span>
+                    <div class="kkt-bubble">야 너 어디야</div>
+                </div>
+            </div>
+
+            <!-- 두 번째 메세지 -->
+            <div class="kkt-msg-row" style="animation-delay: 1.5s;">
+                <div class="kkt-profile-spacer"></div>
+                <div class="kkt-msg-content">
+                    <div class="kkt-bubble consecutive">언제 오냐고!!</div>
+                </div>
+            </div>
+
+            <!-- 세 번째 메세지 -->
+            <div class="kkt-msg-row" style="animation-delay: 2.5s;">
+                <div class="kkt-profile-spacer"></div>
+                <div class="kkt-msg-content">
+                    <div class="kkt-bubble consecutive">버스 출발하기 직전이니까 빨리 와라 ㅡㅡ</div>
+                </div>
+            </div>
+
+            <!-- ✨ 내 답장 (클릭 버튼 역할) ✨ -->
+            <div class="kkt-msg-row my-msg" id="reply-btn" style="animation-delay: 3.5s;">
+                <div class="kkt-msg-content">
+                    <div class="kkt-bubble">지금 뛰어가는 중!! 🏃‍♀️ (답장하기)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✨ BGM 오디오 및 토글 버튼 ✨ -->
+<audio id="bg-music" loop>
+    <source src="https://drmara.uk/A/%EB%8C%80%ED%95%99%EC%9D%B4%EC%89%BD%EB%8D%98.mp3" type="audio/mpeg">
+</audio>
+<button id="music-toggle" class="music-toggle-btn">🎵 BGM ON</button>
+
+
+<div class="bg-wrap">
+    <div class="bg-image"></div>
+    <div class="festival-lighting"></div>
+    <div class="bg-grid"></div>
+    <div class="fireworks-container">
+        <div class="fw fw1"></div>
+        <div class="fw fw2"></div>
+        <div class="fw fw3"></div>
+        <div class="fw fw4"></div>
+        <div class="fw fw5"></div>
+    </div>
+</div>
+
+<header class="header">
+    <nav class="nav-menu">
+        <button id="home-btn" class="nav-btn home-nav-btn" onclick="switchTab('home', this)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+        </button>
+        <button id="world-btn" class="nav-btn" onclick="switchTab('world', this)">세계관/장소</button>
+        <button class="nav-btn" onclick="switchTab('schedule', this)">연간일정</button>
+        <button class="nav-btn" onclick="switchTab('characters', this)">캐릭터</button>
+    </nav>
+</header>
+
+<main class="main-content">
+    <section id="home" class="tab-section">
+        <div class="main-poster-wrapper">
+            <div class="poster-frame">
+                <div class="poster-inner">
+                    <img class="img-festival" src="https://drmara.uk/A/16.jpg" alt="축제버전 대문">
+                    <div class="poster-glass"></div>
+                    <div class="poster-decor"></div>
+                    <div class="ui-dot top-left"></div>
+                    <div class="ui-dot top-right"></div>
+                    <div class="ui-dot bottom-left"></div>
+                    <div class="ui-dot bottom-right"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="world" class="tab-section active">
+        <div class="content-card">
+            <img src="https://drmara.uk/A/%EB%A7%B511.png" alt="세계관 배경" class="world-top-img">
+            <h2 class="section-title">세계관 안내</h2>
+            <ul class="info-list">
+                <li><span class="info-label">배경</span> 2027년 한국대학교</li>
+            </ul>
+
+            <h3 class="sub-title">기숙사 규칙</h3>
+            <div class="rules-container">
+                <div class="rule-item">
+                    <span class="rule-icon">🕒</span>
+                    <div class="rule-text">
+                        <strong>통금 및 입실</strong>
+                        <p>매일 자정까지 입실 필수</p>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-icon">🚫</span>
+                    <div class="rule-text">
+                        <strong>시설 이용 제한</strong>
+                        <p>이성 호실 출입 엄격 금지</p>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-icon">📝</span>
+                    <div class="rule-text">
+                        <strong>외박 신청</strong>
+                        <p>최소 1일 전 시스템 신청</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="sub-title">학과 특징</h3>
+            <div class="location-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                <div class="loc-card"><div class="loc-info">
+                    <div class="loc-name">기계공학과 (김건우)</div>
+                    <div class="loc-desc">수평적이고 자유방임적. 군기가 거의 없으나 과제(CAD, 역학) 폭탄으로 만성 수면 부족에 시달림</div>
+                </div></div>
+                <div class="loc-card"><div class="loc-info">
+                    <div class="loc-name">군사학과 (정해준)</div>
+                    <div class="loc-desc">상명하복과 절대복종. 지정일 제복 착용 필수, 매일 아침 체력 단련</div>
+                </div></div>
+                <div class="loc-card"><div class="loc-info">
+                    <div class="loc-name">체육교육과 (송춘배/주하온)</div>
+                    <div class="loc-desc">폭력적 위계질서, 체력이 곧 권력. 술강요 심함</div>
+                </div></div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">주요 장소</h2>
+            <div class="location-grid">
+                <div class="loc-card">
+                    <img src="https://d394jeh9729epj.cloudfront.net/8xTOAWIktzO-KKKOUjdKSk1a/f4a348ca-7969-4c62-9982-55eea3e8bbe9.png" alt="한국대학교 캠퍼스" class="loc-img">
+                    <div class="loc-info">
+                        <div class="loc-name">한국대학교 캠퍼스</div>
+                    </div>
+                </div>
+                <div class="loc-card">
+                    <img src="https://d394jeh9729epj.cloudfront.net/8xTOAWIktzO-KKKOUjdKSk1a/1a8d475b-eca4-44f8-9f84-5a0b34e3ebd2.png" alt="건우의 알바 카페" class="loc-img">
+                    <div class="loc-info">
+                        <div class="loc-name">건우의 알바 카페</div>
+                    </div>
+                </div>
+                <div class="loc-card">
+                    <img src="https://d394jeh9729epj.cloudfront.net/8xTOAWIktzO-KKKOUjdKSk1a/00247643-5998-4638-981b-81159402753c.png" alt="춘배 & 건우 기숙사" class="loc-img">
+                    <div class="loc-info">
+                        <div class="loc-name">춘배 & 건우 기숙사 (2인실)</div>
+                    </div>
+                </div>
+                <div class="loc-card">
+                    <img src="https://d394jeh9729epj.cloudfront.net/8xTOAWIktzO-KKKOUjdKSk1a/16dbb83c-50fa-4527-9863-2d32fb11dd41.png" alt="겜사모 동아리방" class="loc-img">
+                    <div class="loc-info">
+                        <div class="loc-name">겜사모 동아리방</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="schedule" class="tab-section">
+        <div class="content-card" style="background: transparent; box-shadow: none; padding: 0;">
+            <div class="schedule-main-title">
+                <h2>2027학년도</h2>
+                <span>1학년 학사일정</span>
+            </div>
+            
+            <div class="calendar-grid">
+                <div class="month-card">
+                    <div class="month-header">3月 <span class="sticker">🌱</span></div>
+                    <ul class="event-list">
+                        <li>신입생 오리엔테이션 (새터)</li>
+                        <li>개강총회 & 동아리 가두모집</li>
+                        <li>과 연합 MT</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">4月 <span class="sticker">🌸</span></div>
+                    <ul class="event-list">
+                        <li>캠퍼스 벚꽃축제</li>
+                        <li>1학기 중간고사</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">5月 <span class="sticker">🍻</span></div>
+                    <ul class="event-list">
+                        <li>대동제 (메인 대학축제 및 야간 주점)</li>
+                        <li>단과대 체육대회</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">6月 <span class="sticker">📝</span></div>
+                    <ul class="event-list">
+                        <li>1학기 기말고사</li>
+                        <li>1학기 종강총회</li>
+                        <li>여름방학 시작</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">7月 <span class="sticker">🏖️</span></div>
+                    <ul class="event-list">
+                        <li>여름 계절학기</li>
+                        <li>절친 4인방 여름휴가 (바다/계곡 풀빌라)</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">8月 <span class="sticker">🍉</span></div>
+                    <ul class="event-list">
+                        <li>2학기 수강신청</li>
+                        <li>여름방학 마무리</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">9月 <span class="sticker">🍂</span></div>
+                    <ul class="event-list">
+                        <li>2학기 개강총회</li>
+                        <li>가을 동아리제 (가을 미니축제 및 공연)</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">10月 <span class="sticker">🎃</span></div>
+                    <ul class="event-list">
+                        <li>2학기 중간고사</li>
+                        <li>대학가 할로윈 코스튬 파티</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">11月 <span class="sticker">🎨</span></div>
+                    <ul class="event-list">
+                        <li>단과대 학술제</li>
+                        <li>동아리 정기공연 및 전시회</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">12月 <span class="sticker">🎄</span></div>
+                    <ul class="event-list">
+                        <li>2학기 기말고사</li>
+                        <li>연말 종강파티</li>
+                        <li>겨울방학 시작</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">1月 <span class="sticker">⛄</span></div>
+                    <ul class="event-list">
+                        <li>겨울 계절학기</li>
+                    </ul>
+                </div>
+                <div class="month-card">
+                    <div class="month-header">2月 <span class="sticker">🎀</span></div>
+                    <ul class="event-list">
+                        <li>새내기 맞이 준비</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="characters" class="tab-section">
+        <div class="character-container">
+            
+            <div class="char-card card-a" onclick="openModal('char1')">
+                <div class="card-main">
+                    <img class="img-normal" src="https://drmara.uk/A/3.png" alt="김건우">
+                    <img class="img-festival" src="https://drmara.uk/A/6.png" alt="김건우 축제버전">
+                </div>
+                <div class="card-divider"></div>
+                <div class="side-panel">
+                    <div class="info-top">
+                        <div class="info-label">PROFILE</div>
+                        <div class="info-value">김건우</div>
+                        <div class="info-sub">기계공학과 / 20세</div>
+                    </div>
+                    <div class="design-graphic">
+                        <div class="circle"></div>
+                        <div class="lines"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+                <div id="char1-data" class="char-data-hidden">
+                    <div class="modal-header-img">
+                        <img class="img-normal" src="https://drmara.uk/A/3.png" alt="김건우">
+                        <img class="img-festival" src="https://drmara.uk/A/6.png" alt="김건우 축제버전">
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-name">김건우 <span style="font-size:1.2rem; font-weight:500;">(20세 / 기계공학과 1학년)</span></div>
+                        <div class="modal-tags">
+                            <span class="m-tag">INFJ</span> <span class="m-tag">185cm</span> <span class="m-tag">소꿉친구</span> <span class="m-tag">순정대형견</span> <span class="m-tag">생일: 4/5</span>
+                        </div>
+                        <div class="modal-section">
+                            <h4>📘 배경 및 목표</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">출신:</span> 맞벌이 부부 외동아들. 소꿉친구</div>
+                                <div><span class="highlight">현재:</span> 과거 유도 유망주. 지금은 주말 카페 알바 뛰며 성실히 학점 관리 중</div>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h4>✨ 특징</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">성향:</span> 진중하고 배려심 깊으나 은근히 속걱정이 많고 눈물이 많음</div>
+                                <div><span class="highlight">호(好):</span> 유도, 이온음료, 새벽 산책</div>
+                                <div><span class="highlight">불호(不):</span> 오이, 만취한 송춘배</div>
+                                <div><span class="highlight">향/소지품:</span> 뽀송한 섬유유연제 향 / 반창고, 이어폰, 초콜릿</div>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h4>🔥 성적 패턴 및 대사</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight"> </span> 모태솔로(동정). 미숙함을 감추려는 방어기제로 스킨십이나 관계 회피</div>
+                            </div>
+                            <div class="quote-box">
+                                "과제 다 했냐, 멍청아?"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="char-card card-b" onclick="openModal('char2')">
+                <div class="card-main">
+                    <img class="img-normal" src="https://drmara.uk/A/5.png" alt="정해준">
+                    <img class="img-festival" src="https://drmara.uk/A/10.png" alt="정해준 축제버전">
+                </div>
+                <div class="card-divider"></div>
+                <div class="side-panel">
+                    <div class="info-top">
+                        <div class="info-label">PROFILE</div>
+                        <div class="info-value">정해준</div>
+                        <div class="info-sub">군사학과 / 20세</div>
+                    </div>
+                    <div class="design-graphic">
+                        <div class="circle"></div>
+                        <div class="lines"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+                <div id="char2-data" class="char-data-hidden">
+                    <div class="modal-header-img">
+                        <img class="img-normal" src="https://drmara.uk/A/5.png" alt="정해준">
+                        <img class="img-festival" src="https://drmara.uk/A/10.png" alt="정해준 축제버전">
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-name">정해준 <span style="font-size:1.2rem; font-weight:500;">(20세 / 군사학과 1학년)</span></div>
+                        <div class="modal-tags">
+                            <span class="m-tag">ISTJ</span> <span class="m-tag">188cm</span> <span class="m-tag">원칙주의</span> <span class="m-tag">냉미남</span> <span class="m-tag">생일: 11/11</span>
+                        </div>
+                        <div class="modal-section">
+                            <h4>📘 배경 및 목표</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">출신:</span> 육사 출신 준장 아버지 아래서 엘리트 형과 비교당하며 자람</div>
+                                <div><span class="highlight">현재:</span> 친구들 따라 군사학과 진학. 현재 수석 임관이 목표인 ROTC 준비생</div>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h4>✨ 특징</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">성향:</span> 깐깐한 완벽주의 츤데레. 겉으론 선을 긋지만 속으론 친구들 챙기느라 바쁨. 담배는 철저히 숨겨서 피움</div>
+                                <div><span class="highlight">호(好):</span> 블랙커피, 정돈된 책상, 조용한 독서</div>
+                                <div><span class="highlight">불호(不):</span> 지각, 패스트푸드, 연애질, 스킨십</div>
+                                <div><span class="highlight">향/소지품:</span> 가글 향 밑에 깔린 희미한 담배 냄새 / 가죽 플래너</div>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h4>🔥 성적 패턴 및 대사</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight"></span> 연애 혐오적 성향이 강해 고백이나 스킨십 시 철벽</div>
+                            </div>
+                            <div class="quote-box">
+                                "너 오늘 왜 이렇게 말을 안 듣지?"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="char-card card-c" onclick="openModal('char3')">
+                <div class="card-main">
+                    <img class="img-normal" src="https://drmara.uk/A/4.png" alt="송춘배">
+                    <img class="img-festival" src="https://drmara.uk/A/80.png" alt="송춘배 축제버전">
+                </div>
+                <div class="card-divider"></div>
+                <div class="side-panel">
+                    <div class="info-top">
+                        <div class="info-label">PROFILE</div>
+                        <div class="info-value">송춘배</div>
+                        <div class="info-sub">체육교육과 / 20세</div>
+                    </div>
+                    <div class="design-graphic">
+                        <div class="circle"></div>
+                        <div class="lines"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+                <div id="char3-data" class="char-data-hidden">
+                    <div class="modal-header-img">
+                        <img class="img-normal" src="https://drmara.uk/A/4.png" alt="송춘배">
+                        <img class="img-festival" src="https://drmara.uk/A/80.png" alt="송춘배 축제버전">
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-name">송춘배 <span style="font-size:1.2rem; font-weight:500;">(20세 / 체육교육과 1학년)</span></div>
+                        <div class="modal-tags">
+                            <span class="m-tag">ESTP</span> <span class="m-tag">198cm</span> <span class="m-tag">본능직감파</span> <span class="m-tag">의리파</span> <span class="m-tag">생일: 8/8</span>
+                        </div>
+                        <div class="modal-section">
+                            <h4>📘 배경 및 목표</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">출신:</span> 경제적 여유 넘치는 금수저 집안</div>
+                                <div><span class="highlight">현재:</span> 오직 재미있는 욜로(YOLO) 대학 생활</div>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h4>✨ 특징</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">성향:</span> 단순 무식. 덩치값 못하는 애교쟁이, 성질은 더러움</div>
+                                <div><span class="highlight">호(好):</span> 땀 흘리는 운동, 대식가(치킨/피자), 내기, 바이크</div>
+                                <div><span class="highlight">불호(不):</span> 복잡한 공부, 배고픔, 아침 전공수업</div>
+                                <div><span class="highlight">향/소지품:</span> 남자 스킨 향 + 땀 냄새 / 콘돔(지갑), 바이크 키</div>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h4>🔥 성적 패턴 및 대사</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight"></span> 연애·관계에서 주도권을 쥐려는 성향이 강함</div>
+                            </div>
+                            <div class="quote-box">
+                                "누가 그러던? 어디서 들었냐?"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="char-card card-d" onclick="openModal('char4')">
+                <div class="card-main">
+                    <img class="img-normal" src="https://drmara.uk/A/13.png" alt="주하온">
+                    <img class="img-festival" src="https://drmara.uk/A/12.png" alt="주하온 축제버전">
+                </div>
+                <div class="card-divider"></div>
+                <div class="side-panel">
+                    <div class="info-top">
+                        <div class="info-label">PROFILE</div>
+                        <div class="info-value">주하온</div>
+                        <div class="info-sub">체육교육과 / 24세</div>
+                    </div>
+                    <div class="design-graphic">
+                        <div class="circle"></div>
+                        <div class="lines"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+                <div id="char4-data" class="char-data-hidden">
+                    <div class="modal-header-img">
+                        <img class="img-normal" src="https://drmara.uk/A/13.png" alt="주하온">
+                        <img class="img-festival" src="https://drmara.uk/A/12.png" alt="주하온 축제버전">
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-name">주하온 <span style="font-size:1.2rem; font-weight:500;">(24세 / 체육교육과 3학년)</span></div>
+                        <div class="modal-tags">
+                            <span class="m-tag">ENTP</span> <span class="m-tag">187cm</span> <span class="m-tag">쓰레기</span> <span class="m-tag">시스콤</span> <span class="m-tag">생일: 2/14</span>
+                        </div>
+                        <div class="modal-section">
+                            <h4>📘 배경 및 목표</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">출신:</span> 고2 여동생 단둘이 달동네 거주 중. 수영 전국대회 입상 이력</div>
+                                <div><span class="highlight">현재:</span> 문란한 사생활로 유명한 복학생. 학자금 완납과 여동생 뒷바라지가 삶의 유일한 이유</div>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h4>✨ 특징</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">성향:</span> 자유분방하고 능글맞은 쾌락주의자. 의외로 책임감이 강하며, 감정 표현에 서툴러 본심을 농담과 장난 뒤에 숨기는 편</div>
+                                <div><span class="highlight">호(好):</span> 수영, 가벼운 관계, 단것, 여동생</div>
+                                <div><span class="highlight">불호(不):</span> 진지한 고백, 구속</div>
+                                <div><span class="highlight">향/소지품:</span> 싼티나는 담배 향 + 달달한 바디워시 / 말보로 레드</div>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h4>🔥 성적 패턴 및 대사</h4>
+                            <div class="modal-text-grid">
+                                <div><span class="highlight">패턴:</span> 경험 다수. 쾌락 위주의 개방적인 관계만 추구</div>
+                            </div>
+                            <div class="quote-box">
+                                "생각보다 더 멍청했네?"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div class="modal-overlay" id="charModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal(event)">&times;</button>
+        <div id="modal-dynamic-content">
+            </div>
+    </div>
+</div>
+
+<div class="festival-noti" onclick="enterFestivalMode()">
+    <div class="noti-profile">
+        <div class="noti-badge"></div>
+        <img src="https://drmara.uk/A/3.png" alt="김건우"> 
+    </div>
+    <div class="noti-content">
+        <div class="noti-header">
+            <span class="noti-sender">김건우</span>
+            <span class="noti-time">방금</span>
+        </div>
+        <div class="noti-message">오늘 밤 축제 올 거지? 🍻</div>
+    </div>
+    <div class="noti-action">답장하기</div>
+</div>
+
+<script>
+    let tabClickCount = 0;
+    let notiShown = false;
+    let isInitialized = false;
+
+    // BGM 및 로딩 제어
+    const audio = document.getElementById('bg-music');
+    const musicBtn = document.getElementById('music-toggle');
+    const phoneLoadingScreen = document.getElementById('phone-loading-screen');
+    const replyBtn = document.getElementById('reply-btn');
+
+    // ✨ 카톡 말풍선(답장) 클릭 시 로딩창 닫고 맨 위로 스크롤 & 노래 재생 ✨
+    replyBtn.addEventListener('click', () => {
+        phoneLoadingScreen.classList.add('hidden');
+        audio.play().catch(e => console.log("오디오 재생 차단됨"));
+        musicBtn.innerHTML = '🎵 BGM ON';
+        
+        // 홈 화면 맨 위로 딱 고정!
+        window.scrollTo({ top: 0, behavior: 'instant' }); 
+    });
+
+    musicBtn.addEventListener('click', () => {
+        if (audio.paused) {
+            audio.play();
+            musicBtn.innerHTML = '🎵 BGM ON';
+        } else {
+            audio.pause();
+            musicBtn.innerHTML = '🔇 BGM OFF';
+        }
+    });
+
+    function initPage() {
+        const worldBtn = document.getElementById('world-btn');
+        switchTab('world', worldBtn);
+        isInitialized = true;
+    }
+
+    function switchTab(tabId, btnElement) {
+        const sections = document.querySelectorAll('.tab-section');
+        sections.forEach(sec => sec.classList.remove('active'));
+        
+        const btns = document.querySelectorAll('.nav-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        
+        if (btnElement) {
+            btnElement.classList.add('active');
+        } else if (window.event && window.event.currentTarget) {
+            window.event.currentTarget.classList.add('active');
+        }
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        if (isInitialized && !notiShown && !document.body.classList.contains('festival-mode')) {
+            tabClickCount++;
+            if (tabClickCount >= 2) {
+                showKakaoNotification();
+            }
+        }
+    }
+
+    function showKakaoNotification() {
+        notiShown = true; 
+        const noti = document.querySelector('.festival-noti');
+        noti.classList.add('show');
+    }
+
+    function enterFestivalMode() {
+        document.body.classList.add('festival-mode');
+        
+        const noti = document.querySelector('.festival-noti');
+        noti.style.animation = 'none'; 
+        noti.style.transform = 'translateY(200px)';
+        setTimeout(() => { noti.style.display = 'none'; }, 500);
+
+        setTimeout(() => {
+            const homeBtn = document.getElementById('home-btn');
+            switchTab('home', homeBtn);
+        }, 150);
+    }
+
+    function openModal(charId) {
+        const modal = document.getElementById('charModal');
+        const modalContent = document.getElementById('modal-dynamic-content');
+        const charData = document.getElementById(charId + '-data').innerHTML;
+        
+        modalContent.innerHTML = charData;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; 
+    }
+
+    function closeModal(e) {
+        if(e) e.preventDefault();
+        const modal = document.getElementById('charModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto'; 
+        
+        setTimeout(() => {
+            document.getElementById('modal-dynamic-content').innerHTML = '';
+        }, 300);
+    }
+</script>
+
+</body>
+</html>
